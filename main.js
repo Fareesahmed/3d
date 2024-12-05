@@ -1,5 +1,3 @@
-// main.js
-
 // Scene setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -17,14 +15,15 @@ scene.add(directionalLight);
 
 // Create rotating objects
 const objects = [];
+let isHovered = false; // Track hover state
 
-// Sphere
-const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347 }); // Tomato color
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-sphere.position.x = -4;
-scene.add(sphere);
-objects.push(sphere);
+// Cylinder (replacing the sphere)
+const cylinderGeometry = new THREE.CylinderGeometry(1, 1, 2, 32); // Cylinder geometry
+const cylinderMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347 }); // Tomato color
+const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+cylinder.position.x = -4;
+scene.add(cylinder);
+objects.push(cylinder);
 
 // Cube
 const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
@@ -52,15 +51,43 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
 });
 
+// Add raycaster and mouse vector
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// Detect hover
+function onMouseMove(event) {
+  // Calculate mouse position in normalized device coordinates (-1 to +1 for both axes)
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // Update the raycaster with the camera and mouse position
+  raycaster.setFromCamera(mouse, camera);
+
+  // Check if the mouse is hovering over any object
+  const intersects = raycaster.intersectObjects(objects);
+
+  if (intersects.length > 0) {
+    isHovered = true; // Mouse is hovering
+  } else {
+    isHovered = false; // Mouse is not hovering
+  }
+}
+
+// Add event listener for mouse move
+window.addEventListener('mousemove', onMouseMove);
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
 
-  // Rotate the objects
-  objects.forEach((obj) => {
-    obj.rotation.x += 0.01;
-    obj.rotation.y += 0.01;
-  });
+  if (!isHovered) {
+    // Rotate the objects if not hovered
+    objects.forEach((obj) => {
+      obj.rotation.x += 0.01;
+      obj.rotation.y += 0.01;
+    });
+  }
 
   renderer.render(scene, camera);
 }
